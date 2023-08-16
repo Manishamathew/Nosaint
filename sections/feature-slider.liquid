@@ -1,0 +1,364 @@
+<script src="https://unpkg.com/flickity@2/dist/flickity.pkgd.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/flickity@2/dist/flickity.min.css">
+
+{% comment %}
+* Make sure you have the Flickity plugin installed and the proper license for this to function on your store
+* Plugin, licensing and documentation at https://flickity.metafizzy.co/
+{% endcomment %}
+
+{% assign collection_main = collections[section.settings.collection_main] %}
+{% assign collection_limit = section.settings.collection_limit %}
+
+{% assign cell_align = section.settings.cell_align %}
+{% assign wrap_around = section.settings.wrap_around %}
+{% assign img_width = section.settings.img_width | append: 'x' %}
+
+<div class="flickity-section-{{ section.id }} flickity-index-slider collection" style="background-color: {{ section.settings.bg }}">
+<div class="page-width">
+<div>
+<p class="text-title text-center" style="margin-bottom:{{ section.settings.title_mb }}px">{{ section.settings.title }}</p>
+</div>
+<div class="flickity-section__carousel carousel-{{section.id }} text-center"
+data-flickity='{
+"cellAlign": "{{ cell_align }}",
+"pageDots": false,
+"freeScroll": true,
+"contain": true,
+"wrapAround": {{ wrap_around }}
+}'>
+ 
+{% for product in collection_main.products limit: collection_limit %}
+{%- if product.metafields.inventory.ShappifyHidden == 'true' -%}{%- continue -%}{%- endif -%}
+{% assign first_variant = product.selected_or_first_available_variant %}
+{% assign featured_img_src = first_variant.featured_img.src | default: product.featured_image.src %}
+{% assign price = first_variant.price %}
+{% assign compare_at_price = first_variant.compare_at_price %}
+<div class="carousel__cell" style="width:{{ section.settings.cell_width }};margin-right:{{ section.settings.mr }}px">
+<a href="{{ product.url }}">
+<img src="{{ featured_img_src | img_url: img_width }}" alt="{{ product.featured_img.alt }}" />
+  
+</a>
+<a href="{{ product.url }}">
+<h5>{{ product.title }}</h5>
+</a>
+{% if compare_at_price > price %}
+<s class="product__compare-at-price">{{ compare_at_price | money }}</s>
+<p class="product__product-price">{{ price | money }}</p>
+{% else %}
+<p class="product__product-price">{{ price | money }}</p>
+{% endif %}
+  {%- if section.settings.image_zoom == 'hover' -%}
+  <script id="EnableZoomOnHover-featured" src="{{ 'magnify.js' | asset_url }}" defer="defer"></script>
+ 
+{%- endif %}
+</div>
+{% endfor %}
+
+
+{% for product in collection_main.products limit: collection_limit %}
+{%- if product.metafields.inventory.ShappifyHidden == 'true' -%}{%- continue -%}{%- endif -%}
+{% assign first_variant = product.selected_or_first_available_variant %}
+{% assign featured_img_src = first_variant.featured_img.src | default: product.featured_image.src %}
+{% assign price = first_variant.price %}
+{% assign compare_at_price = first_variant.compare_at_price %}
+<div class="carousel__cell" style="width:{{ section.settings.cell_width }};margin-right:{{ section.settings.mr }}px">
+  <a href="{{ product.url }}">
+    <img src="{{ featured_img_src | img_url: img_width }}" alt="{{ product.featured_img.alt }}" />
+  </a>
+  <a href="{{ product.url }}">
+    <h5>{{ product.title }}</h5>
+  </a>
+  {% if compare_at_price > price %}
+    <s class="product__compare-at-price">{{ compare_at_price | money }}</s>
+    <p class="product__product-price">{{ price | money }}</p>
+  {% else %}
+    <p class="product__product-price">{{ price | money }}</p>
+  {% endif %}
+  {% if section.settings.image_zoom == 'hover' %}
+    <script id="EnableZoomOnHover-featured" src="{{ 'magnify.js' | asset_url }}" defer="defer"></script>
+  {% endif %}
+
+{% endfor %}
+
+<div class="popup-container" id="popup-{{ card_product.id }}">
+      <div class="popup-container-content">
+        <div class="image-container">
+          <img class="popup-container-image" src="{{ card_product.featured_media | img_url: 'large' }}">
+        </div>
+        <div class="detail-container">
+          <button class="popup-container-close button">Close</button>
+          <p class="popup-container-title">{{ card_product.title | escape }}</p>
+          <p class="popup-container-price">
+            {% render 'price', product: card_product, show_compare_at_price: true %}
+          </p>
+          <button class="popup-container-sizechart button">Size Chart</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const modalTriggerButtons = document.querySelectorAll('.popup-open');
+      const modalCloseButtons = document.querySelectorAll('.popup-container-close');
+
+      modalTriggerButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          const modalId = button.getAttribute('data-id');
+          const modal = document.getElementById(`popup-${modalId}`);
+
+          if (modal) {
+            modal.style.display = 'flex';
+          }
+        });
+      });
+
+      modalCloseButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          const modal = button.closest('.popup-container');
+
+          if (modal) {
+            modal.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
+
+
+{% schema %}
+{
+"name": "Collection Slider",
+"settings": [
+{
+"type": "collection",
+"id": "collection_main",
+"label": "Choose a Collection"
+},
+{
+"type": "range",
+"id": "collection_limit",
+"min": 2,
+"max": 50,
+"step": 1,
+"unit": ".",
+"label": "How many products to show",
+"default": 4
+},
+{
+"type": "color",
+"id": "bg",
+"label": "Background Color"
+},
+{
+"type": "text",
+"id": "title",
+"label": "Title",
+"default": "Featured Collection Slider"
+},
+{
+"type": "range",
+"id": "img_width",
+"min": 200,
+"max": 600,
+"step": 5,
+"unit": "px",
+"label": "Image Width",
+"default": 200
+},
+{
+"type": "select",
+"id": "cell_align",
+"label": "Slide Alignment",
+"options": [
+{
+"value": "center",
+"label": "Center"
+},
+{
+"value": "left",
+"label": "Left"
+}
+],
+"default": "center"
+},
+{
+"type": "range",
+"id": "title_mb",
+"min": 30,
+"max": 120,
+"step": 1,
+"unit": "px",
+"label": "Title Margin Bottom",
+"default": 48
+},
+{
+"type": "select",
+"id": "cell_width",
+"label": "Choose number of slides to show on start",
+"options": [
+{
+"value": "25%",
+"label": "Four"
+},
+{
+"value": "20%",
+"label": "Five"
+},
+{
+"value": "16.6666667%",
+"label": "Six"
+},
+{
+"value": "12.5%",
+"label": "Eight"
+}
+],
+"default": "25%"
+},
+{
+"type": "radio",
+"id": "wrap_around",
+"label": "Enable Wrap Around (endless scrolling)",
+"options": [
+{
+"value": "true",
+"label": "True"
+},
+{
+"value": "false",
+"label": "False"
+}
+],
+"default": "true"
+},
+{
+"type": "range",
+"id": "mr",
+"min": 0,
+"max": 48,
+"step": 1,
+"unit": "px",
+"label": "Cell Margin Right",
+"default": 16,
+"info": "Save page to see changes."
+}
+],
+"presets": [
+{
+"name": "Collection Slider",
+"category": "Slider"
+}
+]
+}
+{% endschema %}
+
+<style>
+    .popup-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .popup-container-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 80%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+    }
+    .popup-container-image {
+      max-width: 100%;
+      height: auto;
+    }
+    .popup-container-close {
+      width: 20px;
+      height: 20px;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+    }
+    .popup-container-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .popup-container-price {
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    .popup-container-sizechart {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 80%;
+    }
+    .modal-open {
+      display: flex;
+    }
+     .product-card-content{
+    height: 100px;
+    position: absolute;
+    bottom: 10px;
+  }
+    .card__media{
+      height:62%;
+    }
+    
+element.style {
+    --ratio-percent: 100.0%;
+}
+.card--card.gradient, .card__inner.gradient {
+    transform: perspective(0);
+}
+.card--card, .card--standard .card__inner {
+    position: relative;
+    box-sizing: border-box;
+    border-radius: var(--border-radius);
+    border: var(--border-width) solid rgba(var(--color-foreground),var(--border-opacity));
+}
+.card__inner {
+    width: 100%;
+}
+.ratio {
+    display: flex;
+    position: relative;
+    align-items: stretch;
+}
+.gradient {
+    background: white;
+  </style>
